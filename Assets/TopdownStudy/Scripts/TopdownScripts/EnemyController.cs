@@ -7,6 +7,8 @@ public class EnemyController : HealthController
     [Header("Basic Stats")]
     [SerializeField] float moveSpeed;
     [SerializeField] float damage;
+    [SerializeField] float timeToDamage;
+    bool isTouching;
     bool canMove;
     PlayerTopdownControl playerRef;
 
@@ -31,9 +33,21 @@ public class EnemyController : HealthController
         if (Vector2.Distance(destiny.position, transform.position) <= distanceToPlayer)
         {
             canMove = false;
+            if (!isTouching)
+            {
+                isTouching = true;
+                playerRef.GetComponent<HealthController>().TakeDamage(damage);
+                StartCoroutine(ReloadDamage());
+            }
+
         }
         else
         {
+            if (isTouching)
+            {
+                isTouching = false;
+                StopAllCoroutines();
+            }
             canMove = true;
         }
 
@@ -46,11 +60,34 @@ public class EnemyController : HealthController
         }
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    IEnumerator ReloadDamage()
+    {
+        yield return new WaitForSeconds(timeToDamage);
+        if (isTouching)
+        {
+            playerRef.GetComponent<HealthController>().TakeDamage(damage);
+            StartCoroutine(ReloadDamage());
+        }
+    }
+
+    /*private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.tag == "Player")
         {
             collision.gameObject.GetComponent<HealthController>()?.TakeDamage(damage);
+            isTouching = true;
+            canMove = false;
+            StartCoroutine(ReloadDamage());
         }
     }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Player")
+        {
+            StopAllCoroutines();
+            canMove = true;
+            isTouching = false;
+        }
+    }*/
 }
