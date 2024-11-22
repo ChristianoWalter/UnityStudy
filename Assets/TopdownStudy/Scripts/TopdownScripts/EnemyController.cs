@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Pathfinding;
 
 public class EnemyController : HealthController
 {
@@ -14,7 +15,14 @@ public class EnemyController : HealthController
 
     [Header("Movement variables")]
     Transform destiny;
+    public float nextWaypointDistance;
+    int currentWayPoint;
+    bool reachedEndOfPath;
     [SerializeField] float distanceToPlayer;
+    Path path;
+    Seeker seeker;
+
+    [SerializeField] Rigidbody2D rb;
 
     protected override void Awake()
     {
@@ -26,6 +34,16 @@ public class EnemyController : HealthController
     {
         destiny = playerRef.transform;
         canMove = true;
+
+        seeker = GetComponent<Seeker>();
+
+        InvokeRepeating("UpdatePath", 0f, .5f);
+    }
+
+    void UpdatePath()
+    {
+        if (seeker.IsDone())
+            seeker.StartPath(rb.position, destiny.position, OnPathComplete);
     }
 
     void Update()
@@ -33,6 +51,7 @@ public class EnemyController : HealthController
         if (Vector2.Distance(destiny.position, transform.position) <= distanceToPlayer)
         {
             canMove = false;
+            rb.velocity = Vector2.zero;
             if (!isTouching)
             {
                 isTouching = true;
@@ -50,13 +69,31 @@ public class EnemyController : HealthController
             }
             canMove = true;
         }
+    }
 
-        if (canMove)
+    void FixedUpdate()
+    {
+        if (path == null || !canMove) return;
+
+        if (currentWayPoint >= path.vectorPath.Count)
         {
-            transform.position = Vector2.MoveTowards(transform.position, destiny.position, moveSpeed * Time.deltaTime);
+            reachedEndOfPath = true;
+            return;
+        }
+        else
+        {
+            reachedEndOfPath = false;
+        }
 
-            Vector2 direction = transform.position - destiny.position;
-            direction.Normalize();
+        Vector2 direction = ((Vector2)path.vectorPath[currentWayPoint] - rb.position).normalized;
+
+        rb.velocity = direction * moveSpeed;
+
+        float distance = Vector2.Distance(rb.position, path.vectorPath[currentWayPoint]);
+
+        if (distance < nextWaypointDistance)
+        {
+            currentWayPoint++;
         }
     }
 
@@ -70,24 +107,15 @@ public class EnemyController : HealthController
         }
     }
 
-    /*private void OnCollisionEnter2D(Collision2D collision)
+
+    private void OnPathComplete(Path p)
     {
-        if (collision.gameObject.tag == "Player")
+        if (!p.error)
         {
-            collision.gameObject.GetComponent<HealthController>()?.TakeDamage(damage);
-            isTouching = true;
-            canMove = false;
-            StartCoroutine(ReloadDamage());
+            path = p;
+            currentWayPoint = 0;
         }
     }
 
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        if (collision.gameObject.tag == "Player")
-        {
-            StopAllCoroutines();
-            canMove = true;
-            isTouching = false;
-        }
-    }*/
+    
 }
