@@ -13,5 +13,10 @@ public class SpikeScript : MonoBehaviour
         {
             collision.gameObject.GetComponent<HealthController>()?.TakeDamage(damage);
         }
+
+        if (collision.gameObject.tag == "Enemy")
+        {
+            collision.gameObject.GetComponent<HealthController>()?.TakeDamage(damage);
+        }
     }
 }

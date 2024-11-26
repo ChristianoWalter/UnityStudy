@@ -7,11 +7,17 @@ public class EnemyController : HealthController
 {
     [Header("Basic Stats")]
     [SerializeField] float moveSpeed;
-    [SerializeField] float damage;
     [SerializeField] float timeToDamage;
-    bool isTouching;
+    bool isOnRange;
     bool canMove;
     PlayerTopdownControl playerRef;
+
+    [Header("Combat variables")]
+    [SerializeField] float damage;
+    [SerializeField] float rangedDistance;
+    [SerializeField] float lifeToChange;
+    [SerializeField] GameObject projectile;
+    bool isRangedAttack;
 
     [Header("Movement variables")]
     Transform destiny;
@@ -52,19 +58,26 @@ public class EnemyController : HealthController
         {
             canMove = false;
             rb.velocity = Vector2.zero;
-            if (!isTouching)
+            if (!isOnRange)
             {
-                isTouching = true;
-                playerRef.GetComponent<HealthController>().TakeDamage(damage);
-                StartCoroutine(ReloadDamage());
+                isOnRange = true;
+                if (isRangedAttack)
+                {
+                    StartCoroutine(ReloadDamage());
+                }
+                else
+                {
+                    playerRef.GetComponent<HealthController>().TakeDamage(damage);
+                    StartCoroutine(ReloadDamage());
+                }
             }
 
         }
         else
         {
-            if (isTouching)
+            if (isOnRange)
             {
-                isTouching = false;
+                isOnRange = false;
                 StopAllCoroutines();
             }
             canMove = true;
@@ -100,9 +113,18 @@ public class EnemyController : HealthController
     IEnumerator ReloadDamage()
     {
         yield return new WaitForSeconds(timeToDamage);
-        if (isTouching)
+        if (isOnRange)
         {
-            playerRef.GetComponent<HealthController>().TakeDamage(damage);
+            if (isRangedAttack)
+            {
+                Vector2 direction = ((Vector2)playerRef.transform.position - rb.position).normalized;
+                GameObject _projectile = Instantiate(projectile, transform.position, Quaternion.identity);
+                _projectile.GetComponent<ProjectileScript>().direction = direction;
+            }
+            else
+            {
+                playerRef.GetComponent<HealthController>().TakeDamage(damage);
+            }
             StartCoroutine(ReloadDamage());
         }
     }
@@ -117,5 +139,12 @@ public class EnemyController : HealthController
         }
     }
 
-    
+    protected override void DamageEffect()
+    {
+        if (currentHealth <= lifeToChange)
+        {
+            isRangedAttack = true;
+            distanceToPlayer = rangedDistance;
+        }
+    }
 }

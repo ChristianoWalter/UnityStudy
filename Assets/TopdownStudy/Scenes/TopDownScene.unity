@@ -338,7 +338,7 @@ Transform:
   m_GameObject: {fileID: 520804846}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.33, y: -4.22, z: 0}
+  m_LocalPosition: {x: 5.95, y: -2.76, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -467,7 +467,7 @@ GameObject:
   - component: {fileID: 1593369820}
   m_Layer: 0
   m_Name: Enemy
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -618,8 +618,11 @@ MonoBehaviour:
   currentHealth: 0
   isInvencible: 0
   moveSpeed: 4
-  damage: 2
   timeToDamage: 1.5
+  damage: 2
+  rangedDistance: 6
+  lifeToChange: 4
+  projectile: {fileID: 2975547477974809251, guid: 53015faf263e0ea43bab41807a97d73c, type: 3}
   nextWaypointDistance: 0.5
   distanceToPlayer: 2
   rb: {fileID: 1593369817}
